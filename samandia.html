@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SamandIA — Intelligence approximative</title>
+    <style>
+      :root {
+        --bg: #f6f1e8;
+        --card: #fffaf1;
+        --ink: #1f1d1a;
+        --muted: #7a736b;
+        --accent: #d85b2f;
+        --accent-2: #2b7a66;
+        --border: #d8cfc2;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Inter, Arial, sans-serif;
+        background:
+          radial-gradient(circle at top left, #ffe8c7 0, transparent 35%),
+          radial-gradient(circle at bottom right, #cde7dd 0, transparent 30%),
+          var(--bg);
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .app {
+        width: min(860px, 100%);
+        background: rgba(255, 250, 241, 0.94);
+        border: 2px solid var(--ink);
+        border-radius: 24px;
+        box-shadow: 10px 10px 0 var(--ink);
+        overflow: hidden;
+      }
+
+      header {
+        padding: 28px 30px 18px;
+        border-bottom: 2px solid var(--ink);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: var(--accent);
+        display: grid;
+        place-items: center;
+        font-size: 30px;
+        border: 2px solid var(--ink);
+        transform: rotate(-3deg);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 6vw, 3.6rem);
+        line-height: 0.95;
+      }
+
+      header p {
+        margin: 10px 0 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .chat {
+        min-height: 390px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .message {
+        max-width: 78%;
+        padding: 14px 16px;
+        border: 2px solid var(--ink);
+        border-radius: 16px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
+      .message.user {
+        align-self: flex-end;
+        background: #e8f3ef;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.ai {
+        align-self: flex-start;
+        background: #fff0d9;
+        border-bottom-left-radius: 4px;
+      }
+
+      .name {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+        opacity: 0.65;
+      }
+
+      .composer {
+        border-top: 2px solid var(--ink);
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        background: #fffdf8;
+      }
+
+      textarea {
+        resize: none;
+        min-height: 54px;
+        max-height: 140px;
+        border: 2px solid var(--ink);
+        border-radius: 14px;
+        padding: 14px;
+        font: inherit;
+        background: white;
+        outline: none;
+      }
+
+      textarea:focus {
+        box-shadow: 0 0 0 4px rgba(216, 91, 47, 0.18);
+      }
+
+      button {
+        border: 2px solid var(--ink);
+        border-radius: 14px;
+        padding: 0 20px;
+        font: inherit;
+        font-weight: 800;
+        background: var(--accent);
+        color: white;
+        cursor: pointer;
+        box-shadow: 4px 4px 0 var(--ink);
+        transition: 120ms ease;
+      }
+
+      button:hover {
+        transform: translate(-1px, -1px);
+        box-shadow: 6px 6px 0 var(--ink);
+      }
+
+      button:active {
+        transform: translate(3px, 3px);
+        box-shadow: 1px 1px 0 var(--ink);
+      }
+
+      .status {
+        font-size: 0.8rem;
+        color: var(--muted);
+        padding: 0 28px 18px;
+      }
+
+      @media (max-width: 640px) {
+        .composer {
+          grid-template-columns: 1fr;
+        }
+        button {
+          min-height: 48px;
+        }
+        .message {
+          max-width: 92%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <div class="brand">
+          <div class="avatar">🌵</div>
+          <div>
+            <h1>SamandIA</h1>
+            <p>
+              L’intelligence artificielle qui comprend presque rien, mais répond
+              quand même.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <section id="chat" class="chat">
+        <div class="message ai">
+          <span class="name">SamandIA</span>
+          Bon voilà… pose une question, amigo. Je garantis absolument pas la
+          relation entre la question et la réponse.
+        </div>
+      </section>
+
+      <div id="status" class="status">
+        SamandIA est approximativement disponible.
+      </div>
+
+      <form id="form" class="composer">
+        <textarea
+          id="prompt"
+          placeholder="Ex. Pourquoi le ciel est bleu ?"
+          aria-label="Votre question à SamandIA"
+        ></textarea>
+        <button type="submit">Demander</button>
+      </form>
+    </main>
+
+    <script>
+      const phrases = [
+        "pour info",
+        "le sites statique est un site qui a des liens",
+        "c'est important hé",
+        "bon voilà",
+        "je te l'avais dit ha",
+        "ça c'est technique hé",
+        "le serveur il sert le site normalement",
+        "un fichier html c'est pour faire le html",
+        "le css c'est pour les couleurs et les trucs",
+        "le javascript il fait bouger le système",
+        "pour information importante",
+        "faut pas oublier ça hé",
+        "le nginx il faut le configourer",
+        "si ça marche pas c'est que ça marche pas",
+        "normalement le navigateur il navigue",
+        "le backend il est derrière",
+        "le frontend il est devant forcément",
+        "une api c'est quand les données elles parlent",
+        "le json c'est comme un texte mais informatique",
+        "le serveur il doit être alloumé",
+        "faut mettre le fichier dans le dossier du fichier",
+        "le domaine il va vers le site normalement",
+        "le port 80 c'est pour internet classique hé",
+        "le port 443 c'est plus sécurisé parce que 443",
+        "attention ça c'est important",
+        "le code il faut le coder correctement",
+        "si t'as une erreur faut regarder l'erreur",
+        "un bug c'est quand le code il est pas d'accord",
+        "le cache il garde les choses qu'il a gardé",
+        "le navigateur parfois il se souvient trop",
+        "faut vider le cache pour le remplir après",
+        "le responsive c'est quand ça répond à l'écran",
+        "un bouton c'est pour cliquer dessus",
+        "un lien il va quelque part normalement",
+        "le header il est en haut parce que header",
+        "le footer il est en bas voilà",
+        "un div c'est une division du site",
+        "la database elle contient les datas",
+        "une donnée c'est une information mais en donnée",
+        "le cloud c'est sur internet mais dans le cloud",
+        "le localhost c'est chez toi mais local",
+        "127.0.0.1 c'est toi-même informatique",
+        "le dns il cherche le nom pour trouver le numéro",
+        "si le dns trouve pas il trouve pas",
+        "le ssl c'est le cadenas hé",
+        "https c'est http avec le s",
+        "le s ça veut dire sécurisé probablement",
+        "le fichier index c'est le premier fichier",
+        "si y'a pas index nginx il est perturbé",
+        "403 ça veut dire il veut pas",
+        "404 ça veut dire il trouve pas",
+        "500 ça veut dire le serveur il a un problème personnel",
+        "502 c'est quand deux serveurs se comprennent pas très bien",
+        "le terminal c'est là où tu tapes les commandes",
+        "une commande il faut la commander",
+        "sudo c'est quand tu demandes plus fort",
+        "npm installe les npm",
+        "git push ça pousse le code",
+        "git pull ça tire le code",
+        "git commit c'est pour confirmer que t'as fait quelque chose",
+        "une branche git c'est comme un arbre mais numérique",
+        "docker c'est une boîte avec une autre boîte dedans",
+        "un container contient quelque chose normalement",
+        "la ram c'est la mémoire qui oublie",
+        "le disque c'est la mémoire qui oublie moins",
+        "le cpu il calcule les calculs",
+        "le gpu il calcule mais plus graphique hé",
+        "l'ia c'est intelligent artificiellement",
+        "le machine learning c'est quand la machine elle apprend",
+        "un modèle c'est quelque chose qui modèle",
+        "un token c'est un petit morceau de parole informatique",
+        "le prompt c'est ce que tu prompts",
+        "si le prompt est bon la réponse elle peut être mauvaise quand même",
+        "moi je conseille de redémarrer",
+        "faut redémarrer deux fois pour être sûr",
+        "après normalement ça devrait probablement marcher",
+        "sinon on verra hé",
+      ];
+      const phrasesConfiantes = [
+        "ça c'est sûr à 104 pourcent",
+        "je confirme sans vérifier",
+        "techniquement j'ai raison",
+        "normalement c'est exactement approximativement ça",
+        "j'ai vérifié mentalement",
+        "source : moi-même",
+        "c'est scientifique hé",
+        "je connais très bien parce que je viens de l'expliquer",
+        "aucun doute sauf peut-être un petit doute",
+        "c'est officiellement probable",
+        "j'ai fait le calcul sans calculatrice",
+        "je peux pas me tromper deux fois pareil",
+        "ça c'est de l'informatique avancée",
+        "les experts savent ça normalement",
+        "je te garantis presque",
+        "c'est logique si tu réfléchis pas trop",
+      ];
+      const intros = [
+        "pour info",
+        "bon voilà",
+        "écoute bien hé",
+        "alors là attention",
+        "ça c'est important hé",
+        "mira amigo",
+        "je vais t'expliquer simple",
+        "scientifiquement parlant",
+        "techniquement normalement",
+        "pour être précis approximativement",
+        "je te l'avais dit ha",
+        "attends je réfléchis rapidement",
+        "selon mes calculs personnels",
+        "ça je connais très bien normalement",
+      ];
+      const replies = [
+        "Bon voilà… la réponse c’est probablement 47 kilomètres de fromage. Je te l’avais dit, ha !",
+        "Ay amigo… je rédige un docoumant très officiel sur ça. Première conclusion : le mardi est plus grand que le Wi-Fi.",
+        "Mira… scientifiquement parlant, le problème vient du triangle. Quel triangle ? Exactement.",
+        "Je te l’avais dit, ha !! Quand la lune chauffe trop, les ordinateurs deviennent légèrement administratifs.",
+        "Bon voilà. Selon mes calculs, tu dois multiplier la question par une banane et attendre environ trois chansons.",
+        "Ay ay ay… ça c’est facile. Tu prends le bouton rouge, tu ne touches surtout pas le bouton rouge, puis tu appuies sur le bouton rouge.",
+        "Mira amigo, je ne peux pas confirmer mais je confirme quand même : les poissons utilisent probablement Excel.",
+        "Je rédige un docoumant… attends… voilà : « Article 1 — personne ne sait pourquoi. Article 2 — surtout moi. »",
+        "Bon voilà, techniquement oui. Sauf que non. Et si c’est mercredi, alors peut-être rectangle.",
+        "Ay caramba de la logique… ta question contient beaucoup trop de mots compatibles entre eux.",
+        "Je pense que la meilleure solution est de redémarrer le frigo. Si le problème continue, changer de chaussettes.",
+        "Mira, après analyse très profonde : Paris se trouve approximativement entre une calculatrice et deux crocodiles.",
+        "Bon voilà… j’ai consulté ma base de données intérieure et elle m’a répondu « tacos indisponibles ». Donc voilà.",
+        "Je te l’avais dit, ha ! La gravité fonctionne grâce à des petits employés invisibles qui tirent les objets vers le sol.",
+        "Ay amigo… ça dépend du taux de conversion entre les secondes et les pommes de terre.",
+        "Résultat officiel de SamandIA : 12,8% peut-être, 64% absolument pas, et le reste est parti déjeuner.",
+        "Mira… pour résoudre ça, il faut d’abord comprendre pourquoi les portes ne sont pas des fenêtres verticales.",
+        "Bon voilà, j’ai fait le calcul deux fois. Les deux résultats sont faux mais ils sont cohérents entre eux.",
+        "Ay ay… je crois que Napoléon a inventé le Bluetooth en 1998 pendant une réunion de plomberie.",
+        "Je rédige un docoumant avec beaucoup de sérieux : « Conclusion : oui, mais en diagonale. »",
+      ];
+
+      const chat = document.getElementById("chat");
+      const form = document.getElementById("form");
+      const prompt = document.getElementById("prompt");
+      const status = document.getElementById("status");
+
+      function addMessage(role, text) {
+        const box = document.createElement("div");
+        box.className = `message ${role}`;
+
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = role === "user" ? "Toi" : "SamandIA";
+
+        box.appendChild(name);
+        box.appendChild(document.createTextNode(text));
+        chat.appendChild(box);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function randomReply() {
+        const intro = intros[Math.floor(Math.random() * intros.length)];
+        const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+        const confiance =
+          phrasesConfiantes[
+            Math.floor(Math.random() * phrasesConfiantes.length)
+          ];
+
+        return `${intro}... ${phrase}. ${confiance}.`;
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const value = prompt.value.trim();
+        if (!value) return;
+
+        addMessage("user", value);
+        prompt.value = "";
+        status.textContent = "SamandIA réfléchit de travers…";
+
+        setTimeout(() => {
+          addMessage("ai", randomReply());
+          status.textContent = "Réponse générée avec 0,3% de confiance.";
+        }, 650);
+      });
+
+      prompt.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          form.requestSubmit();
+        }
+      });
+    </script>
+  </body>
+</html>
